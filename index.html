@@ -7,20 +7,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
         }
         header {
-            background-color: #333;
-            color: white;
-            padding: 1rem 0;
+            background: #1b2838;
+            color: #00d4ff;
+            padding: 1.5rem 0;
             text-align: center;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5);
         }
         nav {
-            background-color: #444;
-            padding: 0.5rem;
+            background: #203a43;
+            padding: 0.8rem;
+            box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.3);
         }
         nav ul {
             list-style: none;
@@ -33,14 +36,15 @@
             margin: 0 1rem;
         }
         nav ul li a {
-            color: white;
+            color: #00d4ff;
             text-decoration: none;
             font-weight: bold;
             display: block;
             padding: 0.5rem;
+            transition: color 0.3s;
         }
         nav ul li a:hover {
-            text-decoration: underline;
+            color: #ffffff;
         }
         main {
             padding: 2rem;
@@ -51,79 +55,116 @@
         }
         .section.active {
             display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .status-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 2rem;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ffffff;
         }
         .status-table th, .status-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: center;
         }
         .status-table th {
-            background-color: #333;
-            color: white;
+            background: #1b2838;
+            color: #00d4ff;
         }
         .status-table tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background: rgba(0, 0, 0, 0.2);
         }
         .status-table tr:hover {
-            background-color: #ddd;
+            background: rgba(0, 0, 0, 0.3);
         }
         footer {
-            background-color: #333;
-            color: white;
+            background: #1b2838;
+            color: #00d4ff;
             text-align: center;
             padding: 1rem 0;
+            position: relative;
+            box-shadow: 0px -3px 10px rgba(0, 0, 0, 0.3);
         }
         .action-btn {
-            background-color: #444;
-            color: white;
+            background: #00d4ff;
+            color: #1b2838;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.8rem 1.5rem;
             cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: background 0.3s;
         }
         .action-btn:hover {
-            background-color: #555;
+            background: #ffffff;
+            color: #1b2838;
+        }
+        form input, form textarea, form button {
+            margin-top: 10px;
+        }
+        form input, form textarea {
+            width: 90%;
+            padding: 10px;
+            font-size: 1rem;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            margin-bottom: 10px;
+        }
+        form button {
+            width: 93%;
+            background: #00d4ff;
+            color: #1b2838;
+            border: none;
+            padding: 0.8rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        form button:hover {
+            background: #ffffff;
+            color: #1b2838;
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyClfTXvGqPzMA0hd8TvAWyOUcYOfMrE3DM",
-            authDomain: "masterpay-6beee.firebaseapp.com",
-            databaseURL: "https://masterpay-6beee-default-rtdb.firebaseio.com",
-            projectId: "masterpay-6beee",
-            storageBucket: "masterpay-6beee.firebasestorage.app",
-            messagingSenderId: "634711659840",
-            appId: "1:634711659840:web:0a2fa133bcbd3c525a16a5",
-            measurementId: "G-9PTX487931"
-        };
+        let isAdmin = false; // Variável para controlar se o usuário é administrador
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        let isAdmin = false; // Variável para controlar se o usuário é admin
-
+        // Função para trocar entre as seções
         function showSection(sectionId) {
             const sections = document.querySelectorAll('.section');
             sections.forEach(section => section.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
         }
 
-        function adminLogin() {
-            const password = prompt("Digite a senha de administrador:");
-            if (password === "senha123") { // Substitua pela sua senha segura
-                alert("Login realizado com sucesso!");
-                isAdmin = true; // Define o usuário como administrador
-                loadSuggestions(); // Recarrega sugestões para exibir controles admin
-            } else {
-                alert("Senha incorreta!");
-            }
-        }
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyClfTXvGqPzMA0hd8TvAWyOUcYOfMrE3DM",
+            authDomain: "masterpay-6beee.firebaseapp.com",
+            databaseURL: "https://masterpay-6beee-default-rtdb.firebaseio.com",
+            projectId: "masterpay-6beee",
+            storageBucket: "masterpay-6beee.appspot.com",
+            messagingSenderId: "634711659840",
+            appId: "1:634711659840:web:0a2fa133bcbd3c525a16a5",
+            measurementId: "G-9PTX487931"
+        };
 
+        // Inicialização do Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Variável para evitar duplicação ao carregar sugestões
+        let loading = false;
+
+        // Função para adicionar sugestões
         function addSuggestion(event) {
             event.preventDefault();
             const nomeConteudo = document.getElementById('nomeConteudo').value.trim();
@@ -155,11 +196,16 @@
                 .catch(error => console.error("Erro ao salvar sugestão no Firebase:", error));
         }
 
+        // Função para carregar sugestões
         function loadSuggestions() {
+            if (loading) return; // Evita carregamento duplicado
+            loading = true;
+
             const statusTableBody = document.querySelector('#status tbody');
             statusTableBody.innerHTML = "";
 
             firebase.database().ref('sugestoes').on('value', snapshot => {
+                statusTableBody.innerHTML = ""; // Limpa a tabela antes de adicionar os itens
                 snapshot.forEach(childSnapshot => {
                     const suggestionId = childSnapshot.key;
                     const suggestion = childSnapshot.val();
@@ -171,49 +217,55 @@
                             <td>${suggestion.anoConteudo}</td>
                             <td>${suggestion.nomeCliente}</td>
                             <td>
-                                ${
-                                    isAdmin
-                                        ? `<select onchange="updateStatus('${suggestionId}', this.value)">
-                                            <option value="Sugestão em aberto" ${suggestion.status === "Sugestão em aberto" ? 'selected' : ''}>Sugestão em aberto</option>
-                                            <option value="Adicionado" ${suggestion.status === "Adicionado" ? 'selected' : ''}>Adicionado</option>
-                                            <option value="Não Aprovado" ${suggestion.status === "Não Aprovado" ? 'selected' : ''}>Não Aprovado</option>
-                                            <option value="Não Encontrado" ${suggestion.status === "Não Encontrado" ? 'selected' : ''}>Não Encontrado</option>
-                                            <option value="Desconhecido" ${suggestion.status === "Desconhecido" ? 'selected' : ''}>Desconhecido</option>
-                                        </select>`
-                                        : suggestion.status
-                                }
+                                ${isAdmin ? `<select onchange="updateStatus('${suggestionId}', this.value)">
+                                    <option value="Sugestão em aberto" ${suggestion.status === "Sugestão em aberto" ? 'selected' : ''}>Sugestão em aberto</option>
+                                    <option value="Adicionado" ${suggestion.status === "Adicionado" ? 'selected' : ''}>Adicionado</option>
+                                    <option value="Não Aprovado" ${suggestion.status === "Não Aprovado" ? 'selected' : ''}>Não Aprovado</option>
+                                </select>` : suggestion.status}
                             </td>
                             <td>
-                                ${
-                                    isAdmin
-                                        ? `<button class="action-btn" onclick="deleteSuggestion('${suggestionId}')">Apagar</button>`
-                                        : ''
-                                }
+                                ${isAdmin ? `<button class="action-btn" onclick="deleteSuggestion('${suggestionId}')">Apagar</button>` : ''}
                             </td>
                         </tr>
                     `;
                     statusTableBody.innerHTML += row;
                 });
+                loading = false; // Finaliza o carregamento
             });
         }
 
+        // Função para atualizar o status da sugestão
         function updateStatus(suggestionId, newStatus) {
             firebase.database().ref('sugestoes/' + suggestionId).update({ status: newStatus })
-                .then(() => console.log(`Status atualizado para: ${newStatus}`))
+                .then(() => console.log("Status atualizado para:", newStatus))
                 .catch(error => console.error("Erro ao atualizar status:", error));
         }
 
+        // Função para excluir sugestão
         function deleteSuggestion(suggestionId) {
-            if (confirm("Tem certeza de que deseja apagar esta sugestão?")) {
+            if (confirm("Tem certeza de que deseja excluir esta sugestão?")) {
                 firebase.database().ref('sugestoes/' + suggestionId).remove()
                     .then(() => {
-                        alert("Sugestão apagada com sucesso!");
+                        alert("Sugestão excluída com sucesso!");
                         loadSuggestions();
                     })
-                    .catch(error => console.error("Erro ao apagar sugestão:", error));
+                    .catch(error => console.error("Erro ao excluir sugestão:", error));
             }
         }
 
+        // Função de login de admin
+        function adminLogin() {
+            const password = prompt("Digite a senha de administrador:");
+            if (password === "senha123") {
+                alert("Login realizado com sucesso!");
+                isAdmin = true; // Define o usuário como administrador
+                loadSuggestions(); // Recarrega as sugestões para mostrar opções de admin
+            } else {
+                alert("Senha incorreta!");
+            }
+        }
+
+        // Inicializar ao carregar a página
         window.onload = loadSuggestions;
     </script>
 </head>
@@ -237,13 +289,13 @@
             <h2>Sugestão de Conteúdo</h2>
             <form id="suggestion-form" onsubmit="addSuggestion(event)">
                 <label for="nomeConteudo">Nome do Filme ou Série:</label>
-                <input type="text" id="nomeConteudo" required><br><br>
+                <input type="text" id="nomeConteudo" required><br>
                 <label for="comentariosConteudo">Comentários:</label>
-                <textarea id="comentariosConteudo"></textarea><br><br>
+                <textarea id="comentariosConteudo"></textarea><br>
                 <label for="anoConteudo">Ano:</label>
-                <input type="text" id="anoConteudo"><br><br>
+                <input type="text" id="anoConteudo"><br>
                 <label for="nomeCliente">Seu Nome:</label>
-                <input type="text" id="nomeCliente" required><br><br>
+                <input type="text" id="nomeCliente" required><br>
                 <button type="submit">Enviar Sugestão</button>
             </form>
         </section>
